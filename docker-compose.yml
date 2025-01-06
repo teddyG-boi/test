@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  next:
+    build:
+      context: ./next
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+      - NEXT_PUBLIC_MAX_LOOPS=10
+      - NEXT_PUBLIC_FF_MOCK_MODE_ENABLED=false
+      - NEXT_PUBLIC_SHOW_SHARE_BUTTON=false
+      - DATABASE_URL=mysql://testagent_platform:testagent_platform@testagent_db:3307/testagent_platform
+    depends_on:
+      - testagent_db
+    restart: always
+
+  platform:
+    build:
+      context: ./platform
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      TESTAGENT_PLATFORM_HOST: 0.0.0.0
+      TESTAGENT_PLATFORM_DB_HOST: testagent_db
+      TESTAGENT_PLATFORM_DB_PORT: "3307"
+      TESTAGENT_PLATFORM_DB_USER: "testagent_platform"
+      TESTAGENT_PLATFORM_DB_PASS: "testagent_platform"
+      TESTAGENT_PLATFORM_DB_BASE: "testagent_platform"
+      TESTAGENT_PLATFORM_FRONTEND_URL: "https://gpt.testagent.io"
+      TESTAGENT_PLATFORM_ALLOWED_ORIGINS_REGEX: "https://(.*\\.)?testagent\\.io"
+    depends_on:
+      - testagent_db
+    restart: always
+
+  testagent_db:
+    image: mysql:8.0
+    container_name: testagent_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./db/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      MYSQL_DATABASE: "testagent_platform"
+      MYSQL_USER: "testagent_platform"
+      MYSQL_PASSWORD: "testagent_platform"
+      MYSQL_ROOT_PASSWORD: "testagent_platform"
+    volumes:
+      - testagent_db:/var/lib/mysql
+    restart: always
+
+volumes:
+  testagent_db:

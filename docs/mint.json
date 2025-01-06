@@ -1,0 +1,61 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "TestAgent",
+  "favicon": "/favicon.png",
+  "colors": {
+    "primary": "#9333EA",
+    "light": "#A855F7",
+    "dark": "#6B21A8",
+    "ultraLight": "#C084FC",
+    "ultraDark": "#581C87"
+  },
+  "topbarCtaButton": {
+    "name": "GitHub",
+    "url": "https://github.com/caelumai/TestAgent"
+  },
+  "anchors": [
+    {
+      "name": "Github",
+      "icon": "github",
+      "url": "https://github.com/testagent/TestAgent"
+    },
+    {
+      "name": "Website",
+      "icon": "browser",
+      "url": "https://testagent.io/"
+    },
+    {
+      "name": "Source Code",
+      "icon": "code",
+      "url": "https://github.com/testagent/TestAgent"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["introduction", "quickstart"]
+    },
+    {
+      "group": "Essentials",
+      "pages": [
+        "essentials/FAQ",
+        "essentials/roadmap",
+        "essentials/contributing",
+        "essentials/usecases"
+      ]
+    },
+    {
+      "group": "Development",
+      "pages": [
+        "development/setup",
+        "development/architecture",
+        "development/translations",
+        "development/workflows"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://x.com/ai_testagent",
+    "github": "https://github.com/testagent/TestAgent"
+  }
+}
