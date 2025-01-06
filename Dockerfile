@@ -1,44 +1,37 @@
-# Use the official Node.js image as the base image
-FROM node:18-alpine
+FROM python:3.11-slim-buster as prod
 
-ARG NODE_ENV
-ENV NODE_ENV=$NODE_ENV
+RUN apt-get update && apt-get install -y \
+  default-libmysqlclient-dev \
+  gcc \
+  pkg-config \
+  openjdk-11-jdk \
+  build-essential \
+  && rm -rf /var/lib/apt/lists/*
 
-# Needed for the wait-for-db script and other utilities
-RUN apk add --no-cache netcat-openbsd dos2unix openssl
+RUN pip install poetry==1.4.2
 
-# Set the working directory
-WORKDIR /next
+# Configuring poetry
+RUN poetry config virtualenvs.create false
 
-# Copy package files first
-COPY package*.json ./
+# Copying requirements of a project
+COPY pyproject.toml /app/src/
+WORKDIR /app/src
 
-# Copy Prisma files
-COPY prisma ./prisma/
+# Installing requirements
+RUN poetry install --only main
+# Removing gcc
+RUN apt-get purge -y \
+  g++ \
+  gcc \
+  pkg-config \
+  && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
-RUN npm install
+# Copying actual application
+COPY . /app/src/
+RUN poetry install --only main
 
-# Copy remaining files
-COPY . .
+CMD ["/usr/local/bin/python", "-m", "caelum_platform"]
 
-# Debug: Show prisma directory contents
-RUN ls -la prisma/
-RUN cat prisma/schema.prisma
+FROM prod as dev
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Copy and prepare scripts
-COPY wait-for-db.sh /usr/local/bin/wait-for-db.sh
-COPY entrypoint.sh /
-RUN chmod +x /usr/local/bin/wait-for-db.sh /entrypoint.sh && \
-    dos2unix /entrypoint.sh /usr/local/bin/wait-for-db.sh
-
-# Expose the port the app will run on
-EXPOSE 3000
-
-ENTRYPOINT ["sh", "/entrypoint.sh"]
-
-# Start the application
-CMD ["npm", "run", "dev"]
+RUN poetry install

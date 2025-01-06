@@ -1,43 +1,14 @@
 #!/usr/bin/env sh
 
-cd /next
+host=caelumgpt_db
+port=3306
 
-# copy .env file if not exists
-[ ! -f .env ] && [ -f .env.example ] && cp .env.example .env
-cp .env .env.temp
-dos2unix .env.temp
-cat .env.temp > .env
-rm .env.temp
+until echo "SELECT 1;" | nc "$host" "$port" > /dev/null 2>&1; do
+  >&2 echo "Database is unavailable - Sleeping..."
+  sleep 2
+done
 
-source .env
+>&2 echo "Database is available! Continuing..."
 
-# Ensure DB is available before running Prisma commands
-./wait-for-db.sh caelumgpt_db 3307
-
-# Debug: Show current directory and contents
-echo "Current directory: $(pwd)"
-echo "Listing /next directory:"
-ls -la
-echo "Listing /next/prisma directory:"
-ls -la prisma/
-
-# Verify prisma schema exists
-if [ ! -f ./prisma/schema.prisma ]; then
-    echo "Error: Prisma schema not found at ./prisma/schema.prisma"
-    exit 1
-fi
-
-echo "Found Prisma schema, contents:"
-cat ./prisma/schema.prisma
-
-# Regenerate Prisma client with current environment
-echo "Generating Prisma client..."
-npx prisma generate
-
-# Run database migrations
-echo "Running Prisma migrations..."
-npx prisma migrate deploy
-npx prisma db push
-
-# run cmd
+# Run cmd
 exec "$@"
